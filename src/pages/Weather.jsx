@@ -29,10 +29,23 @@ function getWeatherLabel(code) {
   return weatherCodeMap[code] || "Unknown conditions";
 }
 
+function convertToFahrenheit(celsius) {
+  return ((celsius * 9) / 5 + 32).toFixed(1);
+}
+
+function formatTemperature(celsius, unit) {
+  if (unit === "f") {
+    return `${convertToFahrenheit(celsius)}°F`;
+  }
+
+  return `${Number(celsius).toFixed(1)}°C`;
+}
+
 function Weather() {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [unit, setUnit] = useState("c");
 
   useEffect(() => {
     async function loadWeather() {
@@ -59,9 +72,24 @@ function Weather() {
     <section>
       <h2>Tokyo Weather</h2>
 
+      <div className="unit-toggle">
+        <button
+          className={unit === "c" ? "unit-button active" : "unit-button"}
+          onClick={() => setUnit("c")}
+        >
+          Celsius
+        </button>
+        <button
+          className={unit === "f" ? "unit-button active" : "unit-button"}
+          onClick={() => setUnit("f")}
+        >
+          Fahrenheit
+        </button>
+      </div>
+
       <div className="weather-card">
         <h3>Current Conditions</h3>
-        <p>Temperature: {current.temperature_2m}°C</p>
+        <p>Temperature: {formatTemperature(current.temperature_2m, unit)}</p>
         <p>Wind Speed: {current.wind_speed_10m} km/h</p>
         <p>Conditions: {getWeatherLabel(current.weather_code)}</p>
       </div>
@@ -71,9 +99,11 @@ function Weather() {
         <div className="forecast-grid">
           {daily.time.map((day, index) => (
             <div key={day} className="forecast-card">
-              <p><strong>{day}</strong></p>
-              <p>High: {daily.temperature_2m_max[index]}°C</p>
-              <p>Low: {daily.temperature_2m_min[index]}°C</p>
+              <p>
+                <strong>{day}</strong>
+              </p>
+              <p>High: {formatTemperature(daily.temperature_2m_max[index], unit)}</p>
+              <p>Low: {formatTemperature(daily.temperature_2m_min[index], unit)}</p>
               <p>{getWeatherLabel(daily.weather_code[index])}</p>
             </div>
           ))}
