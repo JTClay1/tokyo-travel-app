@@ -63,3 +63,22 @@ section p {
   line-height: 1.6;
   font-size: 1.05rem;
 }
+.weather-card,
+.forecast-card {
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.forecast-section {
+  margin-top: 2rem;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
