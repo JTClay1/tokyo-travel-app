@@ -104,3 +104,37 @@ section p {
   color: white;
   border-color: #0f172a;
 }
+.season-table-wrapper {
+  margin-top: 2.5rem;
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.season-table-intro {
+  margin: 0.75rem 0 1rem;
+}
+
+.season-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.season-table th,
+.season-table td {
+  border: 1px solid #cbd5e1;
+  padding: 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.season-table th {
+  background-color: #f1f5f9;
+}
+
+.season-table span {
+  color: #475569;
+  font-size: 0.95rem;
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
 import { getTokyoWeather } from "../services/api";
+import SeasonalClimateTable from "../components/SeasonalClimateTable";
 
 function getWeatherLabel(code) {
   const weatherCodeMap = {
@@ -109,6 +110,8 @@ function Weather() {
           ))}
         </div>
       </div>
+
+      <SeasonalClimateTable />
     </section>
   );
 }
