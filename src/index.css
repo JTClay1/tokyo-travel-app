@@ -207,3 +207,78 @@ section p {
   cursor: pointer;
   font-weight: 600;
 }
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: white;
+  padding: 2rem;
+  border-radius: 16px;
+}
+
+.hero-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #bae6fd;
+  margin-bottom: 0.75rem;
+}
+
+.hero-section h2 {
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+}
+
+.hero-text {
+  max-width: 700px;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.feature-card {
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.feature-card h3 {
+  margin-bottom: 0.75rem;
+}
+
+.feature-card p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.feature-link {
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.home-info-card {
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.home-info-card h3 {
+  margin-bottom: 0.75rem;
+}
+
+.home-info-card p {
+  line-height: 1.6;
+}
