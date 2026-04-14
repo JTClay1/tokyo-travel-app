@@ -17,6 +17,15 @@ const tokyoNeighborhoods = [
   { value: "tokyo_station", label: "Tokyo Station / Marunouchi" },
 ];
 
+const suggestedKeywords = [
+  { english: "Sushi", japanese: "寿司" },
+  { english: "Ramen", japanese: "ラーメン" },
+  { english: "Cafe", japanese: "カフェ" },
+  { english: "Gyoza", japanese: "餃子" },
+  { english: "Steak", japanese: "ステーキ" },
+  { english: "Rice", japanese: "米" }
+];
+
 function formatCategory(category) {
   if (!category) return "Restaurant";
 
@@ -92,6 +101,10 @@ function Restaurants() {
     }
   }
 
+  function handleSuggestedKeywordClick(keyword) {
+    setQuery(keyword);
+  }
+
   const selectedAreaLabel =
     tokyoNeighborhoods.find((area) => area.value === selectedArea)?.label ||
     "All Tokyo";
@@ -103,6 +116,39 @@ function Restaurants() {
         Search by cuisine, restaurant name, or food type, then narrow the
         results to the Tokyo neighborhood where you are staying.
       </p>
+
+      <div className="restaurant-helper-card">
+        <h3>Search tip</h3>
+        <p>
+          This search can work better when you use Japanese keywords instead of
+          English ones. Click a suggestion below to auto-fill the search box.
+        </p>
+
+        <div className="keyword-chip-row">
+          {suggestedKeywords.map((keyword) => (
+            <button
+              key={keyword.english}
+              type="button"
+              className="keyword-chip"
+              onClick={() => handleSuggestedKeywordClick(keyword.japanese)}
+            >
+              {keyword.english} → {keyword.japanese}
+            </button>
+          ))}
+        </div>
+
+        <p className="restaurant-subtle">
+          Need another phrase?{" "}
+          <a
+            href="https://translate.google.com/?sl=en&tl=ja&op=translate"
+            target="_blank"
+            rel="noreferrer"
+            className="feature-link"
+          >
+            Open Google Translate
+          </a>
+        </p>
+      </div>
 
       <form className="restaurant-search-form" onSubmit={handleSubmit}>
         <input
