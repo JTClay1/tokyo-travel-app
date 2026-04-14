@@ -1,22 +1,78 @@
 import { useState } from "react";
 import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
-import {
-  searchTokyoRestaurants,
-  getRestaurantDetails,
-} from "../services/api";
+import { searchTokyoRestaurants } from "../services/api";
+
+const tokyoNeighborhoods = [
+  { value: "all", label: "All Tokyo" },
+  { value: "shibuya", label: "Shibuya" },
+  { value: "shinjuku", label: "Shinjuku" },
+  { value: "asakusa", label: "Asakusa" },
+  { value: "ginza", label: "Ginza" },
+  { value: "ueno", label: "Ueno" },
+  { value: "akihabara", label: "Akihabara" },
+  { value: "harajuku", label: "Harajuku" },
+  { value: "roppongi", label: "Roppongi" },
+  { value: "ikebukuro", label: "Ikebukuro" },
+  { value: "tokyo_station", label: "Tokyo Station / Marunouchi" },
+];
+
+function formatCategory(category) {
+  if (!category) return "Restaurant";
+
+  return category
+    .split(".")
+    .map((part) => part.replaceAll("_", " "))
+    .join(" • ");
+}
+
+function extractWebsite(properties) {
+  return (
+    properties.website ||
+    properties.datasource?.raw?.website ||
+    properties.datasource?.raw?.["contact:website"] ||
+    properties.datasource?.raw?.contact_website ||
+    ""
+  );
+}
+
+function extractPhone(properties) {
+  return (
+    properties.phone ||
+    properties.datasource?.raw?.phone ||
+    properties.datasource?.raw?.["contact:phone"] ||
+    properties.datasource?.raw?.contact_phone ||
+    ""
+  );
+}
+
+function extractOpeningHours(properties) {
+  return (
+    properties.opening_hours ||
+    properties.datasource?.raw?.opening_hours ||
+    ""
+  );
+}
+
+function getMapLink(properties) {
+  const searchText = [properties.name, properties.formatted]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!searchText) return "";
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    searchText
+  )}`;
+}
 
 function Restaurants() {
   const [query, setQuery] = useState("sushi");
+  const [selectedArea, setSelectedArea] = useState("all");
   const [restaurants, setRestaurants] = useState([]);
   const [searchStarted, setSearchStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [selectedPlaceId, setSelectedPlaceId] = useState("");
-  const [selectedPlaceDetails, setSelectedPlaceDetails] = useState(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [detailsError, setDetailsError] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -24,12 +80,9 @@ function Restaurants() {
     setSearchStarted(true);
     setLoading(true);
     setError("");
-    setSelectedPlaceId("");
-    setSelectedPlaceDetails(null);
-    setDetailsError("");
 
     try {
-      const results = await searchTokyoRestaurants(query);
+      const results = await searchTokyoRestaurants(query, selectedArea);
       setRestaurants(results);
     } catch (err) {
       setError(err.message);
@@ -39,105 +92,16 @@ function Restaurants() {
     }
   }
 
-  async function handleViewDetails(placeId) {
-    if (selectedPlaceId === placeId) {
-      setSelectedPlaceId("");
-      setSelectedPlaceDetails(null);
-      setDetailsError("");
-      return;
-    }
-
-    setSelectedPlaceId(placeId);
-    setSelectedPlaceDetails(null);
-    setDetailsError("");
-    setDetailsLoading(true);
-
-    try {
-      const details = await getRestaurantDetails(placeId);
-      setSelectedPlaceDetails(details);
-    } catch (err) {
-      setDetailsError(err.message);
-    } finally {
-      setDetailsLoading(false);
-    }
-  }
-
-  function renderReviews() {
-    const reviews = selectedPlaceDetails?.reviews || [];
-
-    if (reviews.length === 0) {
-      return <p className="restaurant-subtle">No reviews returned for this place.</p>;
-    }
-
-    return (
-      <div className="review-list">
-        <p className="restaurant-subtle">Reviews are shown in Google’s relevance order.</p>
-
-        {reviews.map((review, index) => (
-          <div key={`${review.authorAttribution?.displayName || "review"}-${index}`} className="review-card">
-            <p className="review-author">
-              {review.authorAttribution?.displayName || "Google user"}
-            </p>
-
-            {review.rating ? (
-              <p className="review-meta">Rating: {review.rating} / 5</p>
-            ) : null}
-
-            <p>
-              {review.text?.text ||
-                review.originalText?.text ||
-                "No review text available."}
-            </p>
-
-            {review.authorAttribution?.uri ? (
-              <a
-                href={review.authorAttribution.uri}
-                target="_blank"
-                rel="noreferrer"
-                className="feature-link"
-              >
-                View author profile
-              </a>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  function renderAttributions() {
-    const attributions = selectedPlaceDetails?.attributions || [];
-
-    if (attributions.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="attribution-block">
-        <p className="restaurant-subtle">Attributions</p>
-        <ul className="attribution-list">
-          {attributions.map((item, index) => (
-            <li key={`${item.provider || "provider"}-${index}`}>
-              {item.providerUri ? (
-                <a href={item.providerUri} target="_blank" rel="noreferrer">
-                  {item.provider}
-                </a>
-              ) : (
-                item.provider
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  const selectedAreaLabel =
+    tokyoNeighborhoods.find((area) => area.value === selectedArea)?.label ||
+    "All Tokyo";
 
   return (
     <section className="restaurant-page">
-      <h2>Tokyo Restaurant Finder</h2>
+      <h2>Tokyo Restaurant Locator</h2>
       <p className="restaurant-intro">
-        Search by cuisine, vibe, or use case. Try things like sushi, ramen,
-        dessert, quiet lunch, or Shibuya cafe.
+        Search by cuisine, restaurant name, or food type, then narrow the
+        results to the Tokyo neighborhood where you are staying.
       </p>
 
       <form className="restaurant-search-form" onSubmit={handleSubmit}>
@@ -146,12 +110,32 @@ function Restaurants() {
           className="restaurant-search-input"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search Tokyo restaurants..."
+          placeholder="Try sushi, ramen, cafe, dessert..."
         />
+
+        <select
+          className="restaurant-area-select"
+          value={selectedArea}
+          onChange={(event) => setSelectedArea(event.target.value)}
+        >
+          {tokyoNeighborhoods.map((area) => (
+            <option key={area.value} value={area.value}>
+              {area.label}
+            </option>
+          ))}
+        </select>
+
         <button type="submit" className="restaurant-search-button">
           Search
         </button>
       </form>
+
+      {searchStarted ? (
+        <p className="restaurant-subtle">
+          Showing results for <strong>{query || "restaurants"}</strong> in{" "}
+          <strong>{selectedAreaLabel}</strong>.
+        </p>
+      ) : null}
 
       {loading ? <Loading /> : null}
       {error ? <ErrorMessage message={error} /> : null}
@@ -161,59 +145,74 @@ function Restaurants() {
       ) : null}
 
       <div className="restaurant-results">
-        {restaurants.map((place) => (
-          <article key={place.id} className="restaurant-card">
-            <h3>{place.displayName?.text || "Unnamed place"}</h3>
+        {restaurants.map((restaurant) => {
+          const properties = restaurant.properties;
+          const website = extractWebsite(properties);
+          const phone = extractPhone(properties);
+          const openingHours = extractOpeningHours(properties);
+          const mapLink = getMapLink(properties);
 
-            <p className="restaurant-meta">
-              {place.primaryTypeDisplayName?.text || "Restaurant"}
-            </p>
-
-            <p>{place.formattedAddress || "No address available"}</p>
-
-            <p className="restaurant-meta">
-              Rating: {place.rating ? `${place.rating} / 5` : "No rating yet"}
-              {place.userRatingCount
-                ? ` • ${place.userRatingCount} reviews`
-                : ""}
-            </p>
-
-            {place.googleMapsUri ? (
-              <p>
-                <a
-                  href={place.googleMapsUri}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="feature-link"
-                >
-                  Open in Google Maps
-                </a>
-              </p>
-            ) : null}
-
-            <button
-              className="restaurant-details-button"
-              onClick={() => handleViewDetails(place.id)}
+          return (
+            <article
+              key={
+                properties.place_id ||
+                `${properties.name}-${properties.lat}-${properties.lon}`
+              }
+              className="restaurant-card"
             >
-              {selectedPlaceId === place.id ? "Hide Reviews" : "View Reviews"}
-            </button>
+              <h3>{properties.name || "Unnamed restaurant"}</h3>
 
-            {selectedPlaceId === place.id ? (
-              <div className="review-panel">
-                {detailsLoading ? <Loading /> : null}
-                {detailsError ? <ErrorMessage message={detailsError} /> : null}
+              <p className="restaurant-meta">
+                {formatCategory(properties.categories?.[0])}
+              </p>
 
-                {!detailsLoading && !detailsError && selectedPlaceDetails ? (
-                  <>
-                    {renderReviews()}
-                    {renderAttributions()}
-                  </>
+              <p>{properties.formatted || "No address available"}</p>
+
+              {properties.suburb || properties.district ? (
+                <p className="restaurant-subtle">
+                  Area: {properties.suburb || properties.district}
+                </p>
+              ) : null}
+
+              {openingHours ? (
+                <p className="restaurant-subtle">Hours: {openingHours}</p>
+              ) : null}
+
+              {phone ? (
+                <p className="restaurant-subtle">Phone: {phone}</p>
+              ) : null}
+
+              <div className="restaurant-link-row">
+                {website ? (
+                  <a
+                    href={website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="feature-link"
+                  >
+                    Visit Website
+                  </a>
+                ) : null}
+
+                {mapLink ? (
+                  <a
+                    href={mapLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="feature-link"
+                  >
+                    Search in Google Maps
+                  </a>
                 ) : null}
               </div>
-            ) : null}
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
+
+      <p className="restaurant-credit">
+        Restaurant data is powered by OpenStreetMap through Geoapify.
+      </p>
     </section>
   );
 }

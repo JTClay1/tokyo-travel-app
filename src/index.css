@@ -282,6 +282,7 @@ section p {
 .home-info-card p {
   line-height: 1.6;
 }
+
 .restaurant-page {
   display: flex;
   flex-direction: column;
@@ -298,17 +299,21 @@ section p {
   flex-wrap: wrap;
 }
 
-.restaurant-search-input {
-  flex: 1;
-  min-width: 240px;
+.restaurant-search-input,
+.restaurant-area-select {
+  min-width: 220px;
   padding: 0.85rem 1rem;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   font-size: 1rem;
+  background-color: white;
 }
 
-.restaurant-search-button,
-.restaurant-details-button {
+.restaurant-search-input {
+  flex: 1;
+}
+
+.restaurant-search-button {
   border: none;
   background-color: #0f172a;
   color: white;
@@ -335,7 +340,8 @@ section p {
 }
 
 .restaurant-meta,
-.restaurant-subtle {
+.restaurant-subtle,
+.restaurant-credit {
   color: #475569;
 }
 
@@ -343,45 +349,17 @@ section p {
   margin: 0.5rem 0;
 }
 
-.restaurant-details-button {
+.restaurant-subtle {
+  margin-top: 0.4rem;
+}
+
+.restaurant-link-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-top: 1rem;
 }
 
-.review-panel {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.review-list {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.review-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.9rem;
-}
-
-.review-author {
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.review-meta {
-  color: #475569;
-  margin-bottom: 0.5rem;
+.restaurant-credit {
   font-size: 0.95rem;
-}
-
-.attribution-block {
-  margin-top: 1rem;
-}
-
-.attribution-list {
-  margin-top: 0.5rem;
-  padding-left: 1.25rem;
 }

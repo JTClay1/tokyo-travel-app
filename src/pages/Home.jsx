@@ -25,10 +25,10 @@ function Home() {
         </article>
 
         <article className="feature-card">
-          <h3>Restaurant Finder</h3>
+          <h3>Restaurant Locator</h3>
           <p>
-            Search for places to eat and explore dining options around Tokyo in
-            one clean travel tool.
+            Search for places to eat by cuisine or neighborhood and quickly hand
+            the result off to Google Maps.
           </p>
           <Link to="/restaurants" className="feature-link">
             Go to Restaurants
