@@ -29,10 +29,11 @@ export async function getTokyoWeather() {
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${TOKYO_LAT}` +
     `&longitude=${TOKYO_LON}` +
-    `&current=temperature_2m,weather_code,wind_speed_10m` +
+    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+    `&hourly=relative_humidity_2m` +
     `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
     `&timezone=Asia%2FTokyo` +
-    `&forecast_days=5`;
+    `&forecast_days=7`;
 
   const response = await fetch(url);
 
