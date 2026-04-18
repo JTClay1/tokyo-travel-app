@@ -493,3 +493,42 @@ section p {
     width: 100%;
   }
 }
+.current-condition {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.current-weather-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.weather-details {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.forecast-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.forecast-date {
+  margin-bottom: 0.25rem;
+}
+
+.forecast-condition {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+}
+
+.forecast-icon {
+  font-size: 1.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
