@@ -1,88 +1,128 @@
 # Tokyo Travel App
 
-A front-end React app that helps travelers plan a Tokyo trip with live weather data, restaurant search, and a Japanese phrases quiz.
+Tokyo Travel App is a React + Vite single-page application for trip planning. It combines practical travel utilities for Tokyo in one place: weather checks, restaurant lookup, and Japanese phrase practice.
 
-## Why this project exists
-This project is built for **Project 1: React Application with External API Integration**. It demonstrates:
-- Component structure and reuse
-- Asynchronous data fetching
-- Controlled inputs and UI state
-- Routing across multiple views
-- Styling/layout polish
+## Project overview
 
-## Features
-- **Home view** with quick navigation to core tools
-- **Weather view**
-  - Current Tokyo weather
-  - 5-day forecast
-  - Celsius/Fahrenheit toggle
-  - Seasonal climate reference table
-- **Restaurant Locator view**
-  - Search by keyword/cuisine
-  - Tokyo neighborhood filter
-  - Suggested Japanese search keywords
-  - Links to Google Maps and website/phone/hours (when available)
-- **Phrases Quiz view**
-  - Multiple-choice travel phrase quiz
-  - Score tracking and restart flow
-- **404 fallback** for unknown routes
+The app is organized around a few high-value traveler workflows:
+
+- Check **current Tokyo weather** and a **7-day forecast**.
+- Find restaurants by cuisine/name and narrow results to popular Tokyo neighborhoods.
+- Practice useful Japanese travel phrases with a quick quiz.
+- Navigate the app through dedicated routes with a themed, persistent UI.
+
+## Core features
+
+### Global app experience
+- Client-side routing for:
+  - `/` Home
+  - `/weather`
+  - `/restaurants`
+  - `/phrases-quiz`
+  - fallback `*` route (404 page)
+- Navbar with:
+  - Route links
+  - Live Tokyo clock (`Asia/Tokyo`)
+  - Light/Dark mode toggle
+- Theme preference persistence via `localStorage`
+
+### Weather page
+- Current conditions for Tokyo:
+  - Temperature
+  - Humidity
+  - Wind speed
+  - Condition label + icon
+- 7-day forecast cards:
+  - Daily high/low temperatures
+  - Weather condition
+  - Average humidity (derived from hourly humidity values)
+- Celsius/Fahrenheit display toggle
+- Seasonal climate reference table
+- Loading and error states for API requests
+
+### Restaurant locator
+- Search by restaurant/cuisine keyword
+- Area filter presets:
+  - All Tokyo, Shibuya, Shinjuku, Asakusa, Ginza, Ueno, Akihabara, Harajuku, Roppongi, Ikebukuro, Tokyo Station/Marunouchi
+- Suggested Japanese keywords (e.g., 寿司, ラーメン) for better local matching
+- Results include available:
+  - Address
+  - Category
+  - Opening hours
+  - Phone number
+  - Website link
+  - Google Maps search link
+- Loading, empty-state, and error handling
+
+### Phrases quiz
+- 10-question multiple-choice quiz
+- Score tracking
+- Per-question correctness feedback
+- Finish state + restart flow
 
 ## Tech stack
-- React
-- React Router
-- Vite
+
+- React 19
+- React Router DOM 7
+- Vite 8
 - Vanilla CSS
+- ESLint 9
 
-## API usage
-### 1) Open-Meteo (weather)
-- Endpoint used:
-  - `https://api.open-meteo.com/v1/forecast`
-- Parameters include Tokyo latitude/longitude, current weather fields, daily forecast fields, timezone, and forecast range.
+## External APIs
 
-### 2) Geoapify Places API (restaurants)
-- Endpoint used:
-  - `https://api.geoapify.com/v2/places`
-- Query includes category filters, Tokyo area radius, optional name keyword, and language.
-- Requires API key via `VITE_GEOAPIFY_API_KEY`.
+### Open-Meteo (weather data)
+- Endpoint: `https://api.open-meteo.com/v1/forecast`
+- Used for:
+  - Current weather fields (`temperature_2m`, `relative_humidity_2m`, `weather_code`, `wind_speed_10m`)
+  - Daily forecast (`weather_code`, `temperature_2m_max`, `temperature_2m_min`)
+  - Hourly humidity (for daily humidity averaging)
+- Request configured for Tokyo coordinates and `Asia/Tokyo` timezone.
 
-## Setup instructions
+### Geoapify Places API (restaurant search)
+- Endpoint: `https://api.geoapify.com/v2/places`
+- Used for category-based place search in Tokyo with neighborhood radius filters
+- Requires `VITE_GEOAPIFY_API_KEY`
+
+## Local development
+
+### Prerequisites
+- Node.js 20+ (recommended)
+- npm 10+ (recommended)
+
+### Setup
 1. Install dependencies:
    ```bash
    npm install
    ```
-2. Create a local env file:
+2. Copy environment template:
    ```bash
    cp .env.example .env.local
    ```
-3. Add your Geoapify key in `.env.local`:
+3. Add your Geoapify key to `.env.local`:
    ```bash
-   VITE_GEOAPIFY_API_KEY=your_key_here
+   VITE_GEOAPIFY_API_KEY=your_geoapify_api_key_here
    ```
-4. Start dev server:
+4. Start the development server:
    ```bash
    npm run dev
    ```
-5. Build for production:
-   ```bash
-   npm run build
-   ```
 
-## Challenges and known issues
-- Restaurant quality/coverage depends on OpenStreetMap source data availability.
-- Some places may not include complete metadata (hours/phone/website).
-- Restaurant search requires a valid Geoapify API key; missing key will show an error.
-- Weather labels are mapped from common weather codes and may not cover every possible code.
-
-## Suggested next improvements
-- Add loading skeletons and richer empty states
-- Add "near me" geolocation option for restaurant filtering
-- Add phrase categories + spaced repetition in quiz mode
-- Persist user settings (temperature unit, last search area)
-- Add basic accessibility audit and keyboard-focus improvements
-- Add unit tests for helper functions and key component states
+### Build and preview
+```bash
+npm run build
+npm run preview
+```
 
 ## Scripts
-- `npm run dev` – run locally
-- `npm run build` – production build
-- `npm run lint` – lint checks
-- `npm run preview` – preview production build
+
+- `npm run dev` - Start local dev server
+- `npm run build` - Create production build
+- `npm run lint` - Run ESLint checks
+- `npm run preview` - Preview production build locally
+
+## Known limitations
+
+- Restaurant result quality depends on OpenStreetMap/Geoapify data completeness.
+- Some restaurant metadata (hours/phone/website) may be missing.
+- Restaurant search fails without a valid `VITE_GEOAPIFY_API_KEY`.
+- Weather-code-to-label/icon mapping is manually maintained and may not include every possible edge code.
