@@ -84,6 +84,35 @@ a {
   z-index: 100;
 }
 
+.tokyo-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--surface-strong);
+  color: var(--text-color);
+  line-height: 1.1;
+}
+
+.tokyo-clock-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+  margin-bottom: 0.2rem;
+}
+
+.tokyo-clock-time {
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 .nav-logo {
   font-size: 1.5rem;
 }
@@ -531,4 +560,11 @@ section p {
   font-size: 1.9rem;
   line-height: 1;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .tokyo-clock,
+  .theme-toggle-button {
+    width: 100%;
+  }
 }
