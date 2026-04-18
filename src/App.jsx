@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -7,9 +8,24 @@ import PhrasesQuiz from "./pages/PhrasesQuiz";
 import NotFound from "./pages/NotFound";
 
 function App() {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "light";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  function handleThemeToggle() {
+    setTheme((currentTheme) =>
+      currentTheme === "light" ? "dark" : "light"
+    );
+  }
+
   return (
-    <div className="app">
-      <Navbar />
+    <div className={`app ${theme}-theme`}>
+      <Navbar theme={theme} onToggleTheme={handleThemeToggle} />
+
       <main className="page-container">
         <Routes>
           <Route path="/" element={<Home />} />
