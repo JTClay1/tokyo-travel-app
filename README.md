@@ -9,9 +9,26 @@ The app is organized around a few high-value traveler workflows:
 - Check **current Tokyo weather** and a **7-day forecast**.
 - Find restaurants by cuisine/name and narrow results to popular Tokyo neighborhoods.
 - Practice useful Japanese travel phrases with a quick quiz.
+- Explore a home page attraction carousel featuring major Tokyo landmarks and destination ideas.
 - Navigate the app through dedicated routes with a themed, persistent UI.
 
 ## Core features
+
+### Home page
+- Intro hero section
+- Attraction image carousel featuring:
+  - Tokyo Disneyland
+  - Joypolis
+  - Tokyo Origami Museum
+  - Senso-ji Temple
+  - Tokyo Tower
+  - Imperial Palace and Gardens
+  - Shibuya Crossing
+  - Gundam Statue
+  - Shibuya Sky
+  - Hie Shrine
+- Overlaid attraction names and one-sentence descriptions
+- Quick access cards for the app’s main tools
 
 ### Global app experience
 - Client-side routing for:
