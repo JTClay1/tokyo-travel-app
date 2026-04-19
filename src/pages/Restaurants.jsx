@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
 import { searchTokyoRestaurants } from "../services/api";
@@ -23,7 +23,7 @@ const suggestedKeywords = [
   { english: "Cafe", japanese: "カフェ" },
   { english: "Gyoza", japanese: "餃子" },
   { english: "Steak", japanese: "ステーキ" },
-  { english: "Rice", japanese: "米" }
+  { english: "Rice", japanese: "米" },
 ];
 
 function formatCategory(category) {
@@ -83,15 +83,13 @@ function Restaurants() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-
+  const runSearch = useCallback(async (searchTerm, areaKey) => {
     setSearchStarted(true);
     setLoading(true);
     setError("");
 
     try {
-      const results = await searchTokyoRestaurants(query, selectedArea);
+      const results = await searchTokyoRestaurants(searchTerm, areaKey);
       setRestaurants(results);
     } catch (err) {
       setError(err.message);
@@ -99,6 +97,15 @@ function Restaurants() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    runSearch("sushi", "all");
+  }, [runSearch]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    runSearch(query, selectedArea);
   }
 
   function handleSuggestedKeywordClick(keyword) {
@@ -183,11 +190,13 @@ function Restaurants() {
         </p>
       ) : null}
 
-      {loading ? <Loading /> : null}
+      {loading ? <Loading message="Searching Tokyo restaurants..." /> : null}
       {error ? <ErrorMessage message={error} /> : null}
 
       {searchStarted && !loading && !error && restaurants.length === 0 ? (
-        <p>No matching restaurants found. Try a broader keyword.</p>
+        <div className="status-card">
+          <p>No matching restaurants found. Try a broader keyword.</p>
+        </div>
       ) : null}
 
       <div className="restaurant-results">

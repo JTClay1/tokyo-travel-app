@@ -64,6 +64,10 @@ function formatTemperature(celsius, unit) {
   return `${Number(celsius).toFixed(1)}°C`;
 }
 
+function formatHumidity(value) {
+  return value == null ? "N/A" : `${value}%`;
+}
+
 function formatForecastDate(dateString) {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
@@ -126,7 +130,7 @@ function Weather() {
     loadWeather();
   }, []);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading message="Fetching Tokyo weather..." />;
   if (error) return <ErrorMessage message={error} />;
 
   const current = weatherData.current;
@@ -166,7 +170,7 @@ function Weather() {
 
         <div className="weather-details">
           <p>Temperature: {formatTemperature(current.temperature_2m, unit)}</p>
-          <p>Humidity: {current.relative_humidity_2m}%</p>
+          <p>Humidity: {formatHumidity(current.relative_humidity_2m)}</p>
           <p>Wind Speed: {current.wind_speed_10m} km/h</p>
         </div>
       </div>
@@ -194,7 +198,7 @@ function Weather() {
               <p>
                 Low: {formatTemperature(daily.temperature_2m_min[index], unit)}
               </p>
-              <p>Avg Humidity: {dailyHumidityMap[day]}%</p>
+              <p>Avg Humidity: {formatHumidity(dailyHumidityMap[day])}</p>
             </div>
           ))}
         </div>
