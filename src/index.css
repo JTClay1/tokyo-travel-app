@@ -568,3 +568,43 @@ section p {
     width: 100%;
   }
 }
+
+.status-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.loading-card,
+.error-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-card-title {
+  font-size: 1.1rem;
+}
+
+.error-card {
+  border-left: 4px solid #ef4444;
+}
+
+.loading-spinner {
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

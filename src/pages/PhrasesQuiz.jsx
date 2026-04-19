@@ -1,59 +1,131 @@
 import { useState } from "react";
 
-const quizQuestions = [
+const questionBank = [
   {
     prompt: "Hello",
     correctAnswer: "Konnichiwa",
-    options: ["Konnichiwa", "Arigatou gozaimasu", "Sumimasen", "Toire wa doko desu ka?"],
+    options: [
+      "Konnichiwa",
+      "Arigatou gozaimasu",
+      "Sumimasen",
+      "Toire wa doko desu ka?",
+    ],
   },
   {
     prompt: "Thank you",
     correctAnswer: "Arigatou gozaimasu",
-    options: ["Ikura desu ka?", "Arigatou gozaimasu", "Fooku o moraemasu ka?", "Iie, kekkou desu"],
+    options: [
+      "Ikura desu ka?",
+      "Arigatou gozaimasu",
+      "Fooku o moraemasu ka?",
+      "Iie, kekkou desu",
+    ],
   },
   {
     prompt: "Excuse me",
     correctAnswer: "Sumimasen",
-    options: ["Sumimasen", "Konnichiwa", "Eigo o hanasemasu ka?", "Wakarimasen"],
+    options: [
+      "Sumimasen",
+      "Konnichiwa",
+      "Eigo o hanasemasu ka?",
+      "Wakarimasen",
+    ],
   },
   {
     prompt: "No thank you",
     correctAnswer: "Iie, kekkou desu",
-    options: ["Arigatou gozaimasu", "Iie, kekkou desu", "Ikura desu ka?", "Toire wa doko desu ka?"],
+    options: [
+      "Arigatou gozaimasu",
+      "Iie, kekkou desu",
+      "Ikura desu ka?",
+      "Toire wa doko desu ka?",
+    ],
   },
   {
     prompt: "How much does this cost?",
     correctAnswer: "Ikura desu ka?",
-    options: ["Sumimasen", "Eki wa doko desu ka?", "Ikura desu ka?", "Konnichiwa"],
+    options: [
+      "Sumimasen",
+      "Eki wa doko desu ka?",
+      "Ikura desu ka?",
+      "Konnichiwa",
+    ],
   },
   {
     prompt: "May I get a fork?",
     correctAnswer: "Fooku o moraemasu ka?",
-    options: ["Fooku o moraemasu ka?", "Arigatou gozaimasu", "Wakarimasen", "Toire wa doko desu ka?"],
+    options: [
+      "Fooku o moraemasu ka?",
+      "Arigatou gozaimasu",
+      "Wakarimasen",
+      "Toire wa doko desu ka?",
+    ],
   },
   {
     prompt: "Where is the bathroom?",
     correctAnswer: "Toire wa doko desu ka?",
-    options: ["Eki wa doko desu ka?", "Toire wa doko desu ka?", "Ikura desu ka?", "Konnichiwa"],
+    options: [
+      "Eki wa doko desu ka?",
+      "Toire wa doko desu ka?",
+      "Ikura desu ka?",
+      "Konnichiwa",
+    ],
   },
   {
     prompt: "Do you speak English?",
     correctAnswer: "Eigo o hanasemasu ka?",
-    options: ["Eigo o hanasemasu ka?", "Sumimasen", "Arigatou gozaimasu", "Iie, kekkou desu"],
+    options: [
+      "Eigo o hanasemasu ka?",
+      "Sumimasen",
+      "Arigatou gozaimasu",
+      "Iie, kekkou desu",
+    ],
   },
   {
     prompt: "I don't understand",
     correctAnswer: "Wakarimasen",
-    options: ["Konnichiwa", "Wakarimasen", "Fooku o moraemasu ka?", "Ikura desu ka?"],
+    options: [
+      "Konnichiwa",
+      "Wakarimasen",
+      "Fooku o moraemasu ka?",
+      "Ikura desu ka?",
+    ],
   },
   {
     prompt: "Where is the train station?",
     correctAnswer: "Eki wa doko desu ka?",
-    options: ["Eki wa doko desu ka?", "Toire wa doko desu ka?", "Sumimasen", "Arigatou gozaimasu"],
+    options: [
+      "Eki wa doko desu ka?",
+      "Toire wa doko desu ka?",
+      "Sumimasen",
+      "Arigatou gozaimasu",
+    ],
   },
 ];
 
+function shuffleArray(items) {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [
+      shuffled[randomIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled;
+}
+
+function buildQuizQuestions() {
+  return shuffleArray(questionBank).map((question) => ({
+    ...question,
+    options: shuffleArray(question.options),
+  }));
+}
+
 function PhrasesQuiz() {
+  const [quizQuestions, setQuizQuestions] = useState(() => buildQuizQuestions());
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -86,6 +158,7 @@ function PhrasesQuiz() {
   }
 
   function handleRestartQuiz() {
+    setQuizQuestions(buildQuizQuestions());
     setCurrentQuestionIndex(0);
     setSelectedAnswer("");
     setHasAnswered(false);
@@ -116,7 +189,11 @@ function PhrasesQuiz() {
           <p>
             You scored {score} out of {quizQuestions.length}.
           </p>
-          <button className="quiz-next-button" onClick={handleRestartQuiz}>
+          <button
+            type="button"
+            className="quiz-next-button"
+            onClick={handleRestartQuiz}
+          >
             Restart Quiz
           </button>
         </div>
@@ -140,6 +217,7 @@ function PhrasesQuiz() {
           {currentQuestion.options.map((option) => (
             <button
               key={option}
+              type="button"
               className={getButtonClassName(option)}
               onClick={() => handleAnswerClick(option)}
               disabled={hasAnswered}
@@ -154,10 +232,16 @@ function PhrasesQuiz() {
             {selectedAnswer === currentQuestion.correctAnswer ? (
               <p>Correct!</p>
             ) : (
-              <p>Not quite. The correct answer is {currentQuestion.correctAnswer}.</p>
+              <p>
+                Not quite. The correct answer is {currentQuestion.correctAnswer}.
+              </p>
             )}
 
-            <button className="quiz-next-button" onClick={handleNextQuestion}>
+            <button
+              type="button"
+              className="quiz-next-button"
+              onClick={handleNextQuestion}
+            >
               {currentQuestionIndex === quizQuestions.length - 1
                 ? "Finish Quiz"
                 : "Next Question"}
