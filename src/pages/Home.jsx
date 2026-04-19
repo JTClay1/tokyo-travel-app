@@ -5,7 +5,7 @@ function Home() {
     <section className="home-page">
       <div className="hero-section">
         <p className="hero-eyebrow">Tokyo Travel App</p>
-        <h2>Plan your Tokyo trip with confidence</h2>
+        <h2>Plan your Tokyo trip with confidence!</h2>
         <p className="hero-text">
           Check current weather, get a feel for seasonal temperatures, and learn
           a few useful Japanese phrases before you go.
@@ -16,7 +16,7 @@ function Home() {
         <article className="feature-card">
           <h3>Tokyo Weather</h3>
           <p>
-            View current conditions, a 5-day forecast, and a seasonal climate
+            View current conditions, a 7-day forecast, and a seasonal climate
             table to help plan your trip.
           </p>
           <Link to="/weather" className="feature-link">
@@ -50,9 +50,7 @@ function Home() {
       <div className="home-info-card">
         <h3>Why use this app?</h3>
         <p>
-          Tokyo can feel overwhelming when you are planning from far away. This
-          app keeps a few high-value travel tools in one place so you can prep
-          faster and feel more ready before your trip.
+          A trip to tokyo can be a bit overwhelming, especially your first time there. This app will give you the tools you need to hit the ground with the confidence you need to make your first time there as smooth and stress-free as possible!
         </p>
       </div>
     </section>
