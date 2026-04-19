@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ImageCarousel from "../components/ImageCarousel";
 
 function Home() {
   return (
@@ -11,6 +12,8 @@ function Home() {
           a few useful Japanese phrases before you go.
         </p>
       </div>
+
+      <ImageCarousel />
 
       <div className="feature-grid">
         <article className="feature-card">
@@ -50,7 +53,10 @@ function Home() {
       <div className="home-info-card">
         <h3>Why use this app?</h3>
         <p>
-          A trip to tokyo can be a bit overwhelming, especially your first time there. This app will give you the tools you need to hit the ground with the confidence you need to make your first time there as smooth and stress-free as possible!
+          A trip to Tokyo can be a bit overwhelming, especially your first time
+          there. This app will give you the tools you need to hit the ground
+          with the confidence you need to make your first time there as smooth
+          and stress-free as possible.
         </p>
       </div>
     </section>
