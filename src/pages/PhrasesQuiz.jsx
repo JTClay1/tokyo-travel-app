@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+// Keeping the raw question bank separate from the live quiz state makes it easy
+// to reshuffle without mutating the original source data.
 const questionBank = [
   {
     prompt: "Hello",
@@ -103,6 +105,7 @@ const questionBank = [
   },
 ];
 
+// Simple Fisher-Yates shuffle so each run feels less repetitive.
 function shuffleArray(items) {
   const shuffled = [...items];
 
@@ -117,6 +120,7 @@ function shuffleArray(items) {
   return shuffled;
 }
 
+// Build a fresh quiz version by shuffling both question order and answer order.
 function buildQuizQuestions() {
   return shuffleArray(questionBank).map((question) => ({
     ...question,
@@ -135,6 +139,8 @@ function PhrasesQuiz() {
   const currentQuestion = quizQuestions[currentQuestionIndex];
 
   function handleAnswerClick(answer) {
+    // Once the user answers, lock the question so score cannot be cheesed by
+    // clicking a second option.
     if (hasAnswered) return;
 
     setSelectedAnswer(answer);
@@ -157,6 +163,7 @@ function PhrasesQuiz() {
     }
   }
 
+  // Restart builds a fresh shuffled quiz so reruns do not feel identical.
   function handleRestartQuiz() {
     setQuizQuestions(buildQuizQuestions());
     setCurrentQuestionIndex(0);
