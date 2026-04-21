@@ -4,6 +4,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import { getTokyoWeather } from "../services/api";
 import SeasonalClimateTable from "../components/SeasonalClimateTable";
 
+// Maps Open-Meteo weather codes to language that feels normal to a user.
 function getWeatherLabel(code) {
   const weatherCodeMap = {
     0: "Clear sky",
@@ -39,6 +40,7 @@ function getWeatherLabel(code) {
   return weatherCodeMap[code] || "Unknown conditions";
 }
 
+// Same idea here, but for quick visual readability.
 function getWeatherIcon(code) {
   if ([0, 1].includes(code)) return "☀️";
   if (code === 2) return "⛅";
@@ -56,6 +58,8 @@ function convertToFahrenheit(celsius) {
   return ((celsius * 9) / 5 + 32).toFixed(1);
 }
 
+// Centralizing temperature formatting keeps the JSX cleaner and avoids repeating
+// conversion logic all over the page.
 function formatTemperature(celsius, unit) {
   if (unit === "f") {
     return `${convertToFahrenheit(celsius)}°F`;
@@ -64,6 +68,7 @@ function formatTemperature(celsius, unit) {
   return `${Number(celsius).toFixed(1)}°C`;
 }
 
+// Guard against missing humidity data so the UI never spits out "undefined%".
 function formatHumidity(value) {
   return value == null ? "N/A" : `${value}%`;
 }
@@ -79,6 +84,8 @@ function formatForecastDate(dateString) {
   });
 }
 
+// Open-Meteo gives hourly humidity, so this groups it by day and averages it
+// into something cleaner for the forecast cards.
 function buildDailyHumidityMap(hourly) {
   if (!hourly?.time || !hourly?.relative_humidity_2m) {
     return {};
@@ -141,6 +148,8 @@ function Weather() {
     <section>
       <h2>Tokyo Weather</h2>
 
+      {/* Unit state is just display-side. The source data stays in Celsius,
+          which keeps the API handling simpler. */}
       <div className="unit-toggle">
         <button
           className={unit === "c" ? "unit-button active" : "unit-button"}

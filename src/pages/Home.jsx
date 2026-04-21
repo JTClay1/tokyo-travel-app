@@ -13,6 +13,8 @@ function Home() {
         </p>
       </div>
 
+      {/* Carousel adds some visual pull to the landing page and helps the app
+          feel more like an actual travel tool instead of just a utility menu. */}
       <ImageCarousel />
 
       <div className="feature-grid">

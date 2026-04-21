@@ -2,6 +2,8 @@ const TOKYO_LAT = 35.6762;
 const TOKYO_LON = 139.6503;
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
+// These preset radius filters make neighborhood search much cleaner than
+// trying to geocode arbitrary user text on the fly.
 const TOKYO_AREA_FILTERS = {
   all: `circle:${TOKYO_LON},${TOKYO_LAT},18000`,
   shibuya: "circle:139.7005,35.6595,1800",
@@ -25,6 +27,8 @@ function ensureGeoapifyKey() {
 }
 
 export async function getTokyoWeather() {
+  // Build the full weather request by hand so it stays obvious exactly what
+  // fields I am asking the API for.
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${TOKYO_LAT}` +
@@ -47,6 +51,8 @@ export async function getTokyoWeather() {
 export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
   ensureGeoapifyKey();
 
+  // URLSearchParams keeps this easier to read than manual string-building,
+  // especially once filters start stacking up.
   const params = new URLSearchParams({
     categories: "catering.restaurant,catering.fast_food,catering.cafe",
     filter: TOKYO_AREA_FILTERS[areaKey] || TOKYO_AREA_FILTERS.all,
@@ -58,6 +64,7 @@ export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
 
   const cleanedQuery = searchTerm.trim();
 
+  // Only attach the name filter if the user actually typed something.
   if (cleanedQuery) {
     params.set("name", cleanedQuery);
   }
@@ -71,5 +78,7 @@ export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
     throw new Error(data?.message || "Failed to fetch restaurant data.");
   }
 
+  // Geoapify returns place features, so returning just the feature array keeps
+  // page-level code cleaner.
   return data.features || [];
 }

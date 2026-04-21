@@ -3,6 +3,8 @@ import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
 import { searchTokyoRestaurants } from "../services/api";
 
+// Hard-coded area presets keep the search easy for the user and also let me
+// control the neighborhood options instead of trusting random free text.
 const tokyoNeighborhoods = [
   { value: "all", label: "All Tokyo" },
   { value: "shibuya", label: "Shibuya" },
@@ -17,6 +19,8 @@ const tokyoNeighborhoods = [
   { value: "tokyo_station", label: "Tokyo Station / Marunouchi" },
 ];
 
+// These chips are mainly there because Japanese keywords often return better
+// local results than the English equivalent.
 const suggestedKeywords = [
   { english: "Sushi", japanese: "寿司" },
   { english: "Ramen", japanese: "ラーメン" },
@@ -35,6 +39,8 @@ function formatCategory(category) {
     .join(" • ");
 }
 
+// Geoapify fields are not always consistent, so these helpers pull from a few
+// likely spots before giving up.
 function extractWebsite(properties) {
   return (
     properties.website ||
@@ -63,6 +69,8 @@ function extractOpeningHours(properties) {
   );
 }
 
+// I am using Google Maps search links here because they are familiar and make
+// handoff from the app to actual navigation dead simple.
 function getMapLink(properties) {
   const searchText = [properties.name, properties.formatted]
     .filter(Boolean)
@@ -83,6 +91,8 @@ function Restaurants() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Shared search runner so initial load and manual submit both use the exact
+  // same logic.
   const runSearch = useCallback(async (searchTerm, areaKey) => {
     setSearchStarted(true);
     setLoading(true);
@@ -99,6 +109,7 @@ function Restaurants() {
     }
   }, []);
 
+  // Kick off an initial search so the page does not feel empty on first load.
   useEffect(() => {
     runSearch("sushi", "all");
   }, [runSearch]);
