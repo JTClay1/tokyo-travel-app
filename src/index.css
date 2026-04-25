@@ -426,18 +426,42 @@ section p {
 }
 
 .restaurant-search-input,
-.restaurant-area-select {
+.restaurant-location-input {
   min-width: 220px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+
+.restaurant-search-input:focus,
+.restaurant-location-input:focus {
+  border-color: var(--accent);
+}
+
+.restaurant-search-input {
+  flex: 1;
+}
+
+.restaurant-location-input {
+  min-width: 260px;
+  flex: 1;
+}
+
+.restaurant-sort-select {
+  min-width: 190px;
   padding: 0.85rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 1rem;
   background-color: var(--input-bg);
   color: var(--text-color);
-}
-
-.restaurant-search-input {
-  flex: 1;
 }
 
 .restaurant-results {
@@ -571,7 +595,8 @@ section p {
 
 @media (max-width: 640px) {
   .tokyo-clock,
-  .theme-toggle-button {
+  .theme-toggle-button,
+  .restaurant-sort-select {
     width: 100%;
   }
 }

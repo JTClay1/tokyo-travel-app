@@ -1,26 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
-import { searchTokyoRestaurants } from "../services/api";
+import {
+  geocodeTokyoLocation,
+  searchTokyoRestaurants,
+} from "../services/api";
 
-// Hard-coded area presets keep the search easy for the user and also let me
-// control the neighborhood options instead of trusting random free text.
-const tokyoNeighborhoods = [
-  { value: "all", label: "All Tokyo" },
-  { value: "shibuya", label: "Shibuya" },
-  { value: "shinjuku", label: "Shinjuku" },
-  { value: "asakusa", label: "Asakusa" },
-  { value: "ginza", label: "Ginza" },
-  { value: "ueno", label: "Ueno" },
-  { value: "akihabara", label: "Akihabara" },
-  { value: "harajuku", label: "Harajuku" },
-  { value: "roppongi", label: "Roppongi" },
-  { value: "ikebukuro", label: "Ikebukuro" },
-  { value: "tokyo_station", label: "Tokyo Station / Marunouchi" },
-];
+const DEFAULT_SEARCH_CENTER = {
+  latitude: 35.6812,
+  longitude: 139.7671,
+  label: "Tokyo Station",
+  radius: 4000,
+};
 
-// These chips are mainly there because Japanese keywords often return better
-// local results than the English equivalent.
 const suggestedKeywords = [
   { english: "Sushi", japanese: "寿司" },
   { english: "Ramen", japanese: "ラーメン" },
@@ -39,8 +31,6 @@ function formatCategory(category) {
     .join(" • ");
 }
 
-// Geoapify fields are not always consistent, so these helpers pull from a few
-// likely spots before giving up.
 function extractWebsite(properties) {
   return (
     properties.website ||
@@ -69,8 +59,6 @@ function extractOpeningHours(properties) {
   );
 }
 
-// I am using Google Maps search links here because they are familiar and make
-// handoff from the app to actual navigation dead simple.
 function getMapLink(properties) {
   const searchText = [properties.name, properties.formatted]
     .filter(Boolean)
@@ -83,24 +71,59 @@ function getMapLink(properties) {
   )}`;
 }
 
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadiusKm * c;
+}
+
+function formatDistance(distanceKm) {
+  if (distanceKm == null) return "Distance unavailable";
+
+  if (distanceKm < 1) {
+    return `${Math.round(distanceKm * 1000)} m`;
+  }
+
+  return `${distanceKm.toFixed(1)} km`;
+}
+
 function Restaurants() {
   const [query, setQuery] = useState("sushi");
-  const [selectedArea, setSelectedArea] = useState("all");
+  const [locationInput, setLocationInput] = useState(
+    DEFAULT_SEARCH_CENTER.label
+  );
+  const [activeSearchCenter, setActiveSearchCenter] = useState(
+    DEFAULT_SEARCH_CENTER
+  );
+  const [sortOption, setSortOption] = useState("default");
   const [restaurants, setRestaurants] = useState([]);
   const [searchStarted, setSearchStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Shared search runner so initial load and manual submit both use the exact
-  // same logic.
-  const runSearch = useCallback(async (searchTerm, areaKey) => {
+  const runSearch = useCallback(async (searchTerm, searchCenter) => {
     setSearchStarted(true);
     setLoading(true);
     setError("");
 
     try {
-      const results = await searchTokyoRestaurants(searchTerm, areaKey);
+      const results = await searchTokyoRestaurants(searchTerm, searchCenter);
       setRestaurants(results);
+      setActiveSearchCenter(searchCenter);
     } catch (err) {
       setError(err.message);
       setRestaurants([]);
@@ -109,30 +132,91 @@ function Restaurants() {
     }
   }, []);
 
-  // Kick off an initial search so the page does not feel empty on first load.
   useEffect(() => {
-    runSearch("sushi", "all");
+    runSearch("sushi", DEFAULT_SEARCH_CENTER);
   }, [runSearch]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    runSearch(query, selectedArea);
+
+    setSearchStarted(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const resolvedLocation = locationInput.trim()
+        ? await geocodeTokyoLocation(locationInput)
+        : DEFAULT_SEARCH_CENTER;
+
+      const results = await searchTokyoRestaurants(query, resolvedLocation);
+
+      setRestaurants(results);
+      setActiveSearchCenter(resolvedLocation);
+    } catch (err) {
+      setError(err.message);
+      setRestaurants([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleSuggestedKeywordClick(keyword) {
     setQuery(keyword);
   }
 
-  const selectedAreaLabel =
-    tokyoNeighborhoods.find((area) => area.value === selectedArea)?.label ||
-    "All Tokyo";
+  const restaurantsWithDistance = useMemo(() => {
+    return restaurants.map((restaurant) => {
+      const properties = restaurant.properties;
+      const lat = Number(properties?.lat);
+      const lon = Number(properties?.lon);
+
+      const distanceKm =
+        Number.isFinite(lat) && Number.isFinite(lon)
+          ? getDistanceKm(
+              activeSearchCenter.latitude,
+              activeSearchCenter.longitude,
+              lat,
+              lon
+            )
+          : null;
+
+      return {
+        ...restaurant,
+        distanceKm,
+      };
+    });
+  }, [restaurants, activeSearchCenter]);
+
+  const sortedRestaurants = useMemo(() => {
+    const sorted = [...restaurantsWithDistance];
+
+    if (sortOption === "nearest") {
+      sorted.sort((a, b) => {
+        if (a.distanceKm == null && b.distanceKm == null) return 0;
+        if (a.distanceKm == null) return 1;
+        if (b.distanceKm == null) return -1;
+        return a.distanceKm - b.distanceKm;
+      });
+    }
+
+    if (sortOption === "alphabetical") {
+      sorted.sort((a, b) => {
+        const nameA = a.properties?.name || "Unnamed restaurant";
+        const nameB = b.properties?.name || "Unnamed restaurant";
+
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    return sorted;
+  }, [restaurantsWithDistance, sortOption]);
 
   return (
     <section className="restaurant-page">
       <h2>Tokyo Restaurant Locator</h2>
       <p className="restaurant-intro">
         Search by cuisine, restaurant name, or food type, then narrow the
-        results to the Tokyo neighborhood where you are staying.
+        results with a Tokyo neighborhood, station area, address, or zip code.
       </p>
 
       <div className="restaurant-helper-card">
@@ -177,16 +261,22 @@ function Restaurants() {
           placeholder="Try sushi, ramen, cafe, dessert..."
         />
 
+        <input
+          type="text"
+          className="restaurant-location-input"
+          value={locationInput}
+          onChange={(event) => setLocationInput(event.target.value)}
+          placeholder="Try Shibuya, Tokyo Station, 100-0005, or a Tokyo address"
+        />
+
         <select
-          className="restaurant-area-select"
-          value={selectedArea}
-          onChange={(event) => setSelectedArea(event.target.value)}
+          className="restaurant-sort-select"
+          value={sortOption}
+          onChange={(event) => setSortOption(event.target.value)}
         >
-          {tokyoNeighborhoods.map((area) => (
-            <option key={area.value} value={area.value}>
-              {area.label}
-            </option>
-          ))}
+          <option value="default">Default</option>
+          <option value="nearest">Nearest First</option>
+          <option value="alphabetical">Alphabetical</option>
         </select>
 
         <button type="submit" className="restaurant-search-button">
@@ -195,23 +285,31 @@ function Restaurants() {
       </form>
 
       {searchStarted ? (
-        <p className="restaurant-subtle">
-          Showing results for <strong>{query || "restaurants"}</strong> in{" "}
-          <strong>{selectedAreaLabel}</strong>.
-        </p>
+        <div>
+          <p className="restaurant-subtle">
+            Showing results for <strong>{query || "restaurants"}</strong> near{" "}
+            <strong>{activeSearchCenter.label}</strong>.
+          </p>
+          <p className="restaurant-subtle">
+            Distance is based on <strong>{activeSearchCenter.label}</strong>.
+          </p>
+        </div>
       ) : null}
 
       {loading ? <Loading message="Searching Tokyo restaurants..." /> : null}
       {error ? <ErrorMessage message={error} /> : null}
 
-      {searchStarted && !loading && !error && restaurants.length === 0 ? (
+      {searchStarted &&
+      !loading &&
+      !error &&
+      sortedRestaurants.length === 0 ? (
         <div className="status-card">
           <p>No matching restaurants found. Try a broader keyword.</p>
         </div>
       ) : null}
 
       <div className="restaurant-results">
-        {restaurants.map((restaurant) => {
+        {sortedRestaurants.map((restaurant) => {
           const properties = restaurant.properties;
           const website = extractWebsite(properties);
           const phone = extractPhone(properties);
@@ -233,6 +331,11 @@ function Restaurants() {
               </p>
 
               <p>{properties.formatted || "No address available"}</p>
+
+              <p className="restaurant-distance">
+                Distance from {activeSearchCenter.label}:{" "}
+                {formatDistance(restaurant.distanceKm)}
+              </p>
 
               {properties.suburb || properties.district ? (
                 <p className="restaurant-subtle">
