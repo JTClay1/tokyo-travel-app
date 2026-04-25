@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Weather from "../pages/Weather";
 import { getTokyoWeather } from "../services/api";
 
@@ -28,7 +28,9 @@ const mockWeatherData = {
       "2026-04-21T00:00",
       "2026-04-21T01:00",
     ],
+    temperature_2m: [16.4, 17.1, 14.2, 13.8],
     relative_humidity_2m: [50, 60, 65, 75],
+    weather_code: [0, 2, 61, 3],
   },
 };
 
@@ -58,8 +60,40 @@ describe("Weather", () => {
     expect(screen.getByText("High: 71.6°F")).toBeInTheDocument();
   });
 
+  it("shows expandable hourly forecast details and switches expanded days", async () => {
+    const user = userEvent.setup();
+    getTokyoWeather.mockResolvedValue(mockWeatherData);
+
+    render(<Weather />);
+
+    expect(await screen.findByText("Current Conditions")).toBeInTheDocument();
+
+    await user.click(
+      screen.getAllByRole("button", { name: "Show Hourly Forecast" })[0]
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Hide Hourly Forecast" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("12:00 AM")).toBeInTheDocument();
+    expect(screen.getByText("16.4°C")).toBeInTheDocument();
+    expect(screen.getByText("17.1°C")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Show Hourly Forecast" })
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("16.4°C")).not.toBeInTheDocument();
+      expect(screen.getByText("14.2°C")).toBeInTheDocument();
+      expect(screen.getByText("13.8°C")).toBeInTheDocument();
+    });
+  });
+
   it("renders an error message when the API request fails", async () => {
-    getTokyoWeather.mockRejectedValue(new Error("Failed to fetch weather data."));
+    getTokyoWeather.mockRejectedValueOnce(
+      new Error("Failed to fetch weather data.")
+    );
 
     render(<Weather />);
 
