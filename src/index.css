@@ -426,7 +426,7 @@ section p {
 }
 
 .restaurant-search-input,
-.restaurant-area-select {
+.restaurant-location-input {
   min-width: 220px;
   padding: 0.85rem 1rem;
   border: 1px solid var(--border-color);
@@ -434,6 +434,19 @@ section p {
   font-size: 1rem;
   background-color: var(--input-bg);
   color: var(--text-color);
+}
+
+.restaurant-location-input {
+  min-width: 260px;
+  flex: 1;
+}
+
+
+
+.restaurant-distance {
+  margin-top: 0.65rem;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .restaurant-search-input {
@@ -528,6 +541,7 @@ section p {
   .theme-toggle-button {
     width: 100%;
   }
+
 }
 .current-condition {
   display: flex;
@@ -609,6 +623,7 @@ section p {
   border-radius: 999px;
   animation: spin 0.8s linear infinite;
 }
+
 
 @keyframes spin {
   to {
