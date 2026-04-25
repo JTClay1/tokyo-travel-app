@@ -17,7 +17,7 @@ export async function getTokyoWeather() {
     `?latitude=${TOKYO_LAT}` +
     `&longitude=${TOKYO_LON}` +
     `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
-    `&hourly=relative_humidity_2m` +
+    `&hourly=temperature_2m,relative_humidity_2m,weather_code` +
     `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
     `&timezone=Asia%2FTokyo` +
     `&forecast_days=7`;
@@ -30,6 +30,7 @@ export async function getTokyoWeather() {
 
   return response.json();
 }
+
 
 export async function geocodeTokyoLocation(locationText) {
   ensureGeoapifyKey();

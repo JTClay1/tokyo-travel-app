@@ -4,7 +4,6 @@ import ErrorMessage from "../components/ErrorMessage";
 import { getTokyoWeather } from "../services/api";
 import SeasonalClimateTable from "../components/SeasonalClimateTable";
 
-// Maps Open-Meteo weather codes to language that feels normal to a user.
 function getWeatherLabel(code) {
   const weatherCodeMap = {
     0: "Clear sky",
@@ -40,7 +39,6 @@ function getWeatherLabel(code) {
   return weatherCodeMap[code] || "Unknown conditions";
 }
 
-// Same idea here, but for quick visual readability.
 function getWeatherIcon(code) {
   if ([0, 1].includes(code)) return "☀️";
   if (code === 2) return "⛅";
@@ -58,8 +56,6 @@ function convertToFahrenheit(celsius) {
   return ((celsius * 9) / 5 + 32).toFixed(1);
 }
 
-// Centralizing temperature formatting keeps the JSX cleaner and avoids repeating
-// conversion logic all over the page.
 function formatTemperature(celsius, unit) {
   if (unit === "f") {
     return `${convertToFahrenheit(celsius)}°F`;
@@ -68,7 +64,6 @@ function formatTemperature(celsius, unit) {
   return `${Number(celsius).toFixed(1)}°C`;
 }
 
-// Guard against missing humidity data so the UI never spits out "undefined%".
 function formatHumidity(value) {
   return value == null ? "N/A" : `${value}%`;
 }
@@ -84,8 +79,16 @@ function formatForecastDate(dateString) {
   });
 }
 
-// Open-Meteo gives hourly humidity, so this groups it by day and averages it
-// into something cleaner for the forecast cards.
+function formatHourlyTime(timestamp) {
+  const date = new Date(timestamp);
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function buildDailyHumidityMap(hourly) {
   if (!hourly?.time || !hourly?.relative_humidity_2m) {
     return {};
@@ -116,11 +119,42 @@ function buildDailyHumidityMap(hourly) {
   return averagedHumidity;
 }
 
+function buildHourlyForecastMap(hourly) {
+  if (
+    !hourly?.time ||
+    !hourly?.temperature_2m ||
+    !hourly?.relative_humidity_2m ||
+    !hourly?.weather_code
+  ) {
+    return {};
+  }
+
+  const groupedByDay = {};
+
+  hourly.time.forEach((timestamp, index) => {
+    const dayKey = timestamp.split("T")[0];
+
+    if (!groupedByDay[dayKey]) {
+      groupedByDay[dayKey] = [];
+    }
+
+    groupedByDay[dayKey].push({
+      timestamp,
+      temperature: hourly.temperature_2m[index],
+      humidity: hourly.relative_humidity_2m[index],
+      weatherCode: hourly.weather_code[index],
+    });
+  });
+
+  return groupedByDay;
+}
+
 function Weather() {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [unit, setUnit] = useState("c");
+  const [expandedDay, setExpandedDay] = useState(null);
 
   useEffect(() => {
     async function loadWeather() {
@@ -139,17 +173,23 @@ function Weather() {
 
   if (loading) return <Loading message="Fetching Tokyo weather..." />;
   if (error) return <ErrorMessage message={error} />;
+  if (!weatherData) return <ErrorMessage message="Weather data is unavailable." />;
 
   const current = weatherData.current;
   const daily = weatherData.daily;
   const dailyHumidityMap = buildDailyHumidityMap(weatherData.hourly);
+  const hourlyForecastMap = buildHourlyForecastMap(weatherData.hourly);
+
+  function handleToggleDay(day) {
+    setExpandedDay((currentExpandedDay) =>
+      currentExpandedDay === day ? null : day
+    );
+  }
 
   return (
     <section>
       <h2>Tokyo Weather</h2>
 
-      {/* Unit state is just display-side. The source data stays in Celsius,
-          which keeps the API handling simpler. */}
       <div className="unit-toggle">
         <button
           className={unit === "c" ? "unit-button active" : "unit-button"}
@@ -188,28 +228,73 @@ function Weather() {
         <h3>7-Day Forecast</h3>
 
         <div className="forecast-grid">
-          {daily.time.map((day, index) => (
-            <div key={day} className="forecast-card">
-              <p className="forecast-date">
-                <strong>{formatForecastDate(day)}</strong>
-              </p>
+          {daily.time.map((day, index) => {
+            const isExpanded = expandedDay === day;
+            const hourlyEntries = hourlyForecastMap[day] || [];
 
-              <div className="forecast-condition">
-                <span className="forecast-icon" aria-hidden="true">
-                  {getWeatherIcon(daily.weather_code[index])}
-                </span>
-                <span>{getWeatherLabel(daily.weather_code[index])}</span>
+            return (
+              <div
+                key={day}
+                className={
+                  isExpanded
+                    ? "forecast-card forecast-card-expanded"
+                    : "forecast-card"
+                }
+              >
+                <p className="forecast-date">
+                  <strong>{formatForecastDate(day)}</strong>
+                </p>
+
+                <div className="forecast-condition">
+                  <span className="forecast-icon" aria-hidden="true">
+                    {getWeatherIcon(daily.weather_code[index])}
+                  </span>
+                  <span>{getWeatherLabel(daily.weather_code[index])}</span>
+                </div>
+
+                <p>
+                  High: {formatTemperature(daily.temperature_2m_max[index], unit)}
+                </p>
+                <p>
+                  Low: {formatTemperature(daily.temperature_2m_min[index], unit)}
+                </p>
+                <p>Avg Humidity: {formatHumidity(dailyHumidityMap[day])}</p>
+
+                <button
+                  type="button"
+                  className="forecast-toggle-button"
+                  onClick={() => handleToggleDay(day)}
+                >
+                  {isExpanded ? "Hide Hourly Forecast" : "Show Hourly Forecast"}
+                </button>
+
+                {isExpanded ? (
+                  <div className="hourly-forecast-list">
+                    {hourlyEntries.map((entry) => (
+                      <div
+                        key={entry.timestamp}
+                        className="hourly-forecast-row"
+                      >
+                        <span className="hourly-time">
+                          {formatHourlyTime(entry.timestamp)}
+                        </span>
+                        <span className="hourly-condition">
+                          {getWeatherIcon(entry.weatherCode)}{" "}
+                          {getWeatherLabel(entry.weatherCode)}
+                        </span>
+                        <span className="hourly-temp">
+                          {formatTemperature(entry.temperature, unit)}
+                        </span>
+                        <span className="hourly-humidity">
+                          {formatHumidity(entry.humidity)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-
-              <p>
-                High: {formatTemperature(daily.temperature_2m_max[index], unit)}
-              </p>
-              <p>
-                Low: {formatTemperature(daily.temperature_2m_min[index], unit)}
-              </p>
-              <p>Avg Humidity: {formatHumidity(dailyHumidityMap[day])}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
