@@ -113,6 +113,13 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+.tokyo-clock-date {
+  font-size: 0.78rem;
+  color: var(--muted-text);
+  margin-top: 0.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .nav-logo {
   font-size: 1.5rem;
 }
