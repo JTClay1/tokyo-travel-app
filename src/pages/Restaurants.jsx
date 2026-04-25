@@ -103,10 +103,13 @@ function formatDistance(distanceKm) {
 
 function Restaurants() {
   const [query, setQuery] = useState("sushi");
-  const [locationInput, setLocationInput] = useState(DEFAULT_SEARCH_CENTER.label);
+  const [locationInput, setLocationInput] = useState(
+    DEFAULT_SEARCH_CENTER.label
+  );
   const [activeSearchCenter, setActiveSearchCenter] = useState(
     DEFAULT_SEARCH_CENTER
   );
+  const [sortOption, setSortOption] = useState("default");
   const [restaurants, setRestaurants] = useState([]);
   const [searchStarted, setSearchStarted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -184,6 +187,30 @@ function Restaurants() {
     });
   }, [restaurants, activeSearchCenter]);
 
+  const sortedRestaurants = useMemo(() => {
+    const sorted = [...restaurantsWithDistance];
+
+    if (sortOption === "nearest") {
+      sorted.sort((a, b) => {
+        if (a.distanceKm == null && b.distanceKm == null) return 0;
+        if (a.distanceKm == null) return 1;
+        if (b.distanceKm == null) return -1;
+        return a.distanceKm - b.distanceKm;
+      });
+    }
+
+    if (sortOption === "alphabetical") {
+      sorted.sort((a, b) => {
+        const nameA = a.properties?.name || "Unnamed restaurant";
+        const nameB = b.properties?.name || "Unnamed restaurant";
+
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    return sorted;
+  }, [restaurantsWithDistance, sortOption]);
+
   return (
     <section className="restaurant-page">
       <h2>Tokyo Restaurant Locator</h2>
@@ -242,6 +269,16 @@ function Restaurants() {
           placeholder="Try Shibuya, Tokyo Station, 100-0005, or a Tokyo address"
         />
 
+        <select
+          className="restaurant-sort-select"
+          value={sortOption}
+          onChange={(event) => setSortOption(event.target.value)}
+        >
+          <option value="default">Default</option>
+          <option value="nearest">Nearest First</option>
+          <option value="alphabetical">Alphabetical</option>
+        </select>
+
         <button type="submit" className="restaurant-search-button">
           Search
         </button>
@@ -262,14 +299,17 @@ function Restaurants() {
       {loading ? <Loading message="Searching Tokyo restaurants..." /> : null}
       {error ? <ErrorMessage message={error} /> : null}
 
-      {searchStarted && !loading && !error && restaurantsWithDistance.length === 0 ? (
+      {searchStarted &&
+      !loading &&
+      !error &&
+      sortedRestaurants.length === 0 ? (
         <div className="status-card">
           <p>No matching restaurants found. Try a broader keyword.</p>
         </div>
       ) : null}
 
       <div className="restaurant-results">
-        {restaurantsWithDistance.map((restaurant) => {
+        {sortedRestaurants.map((restaurant) => {
           const properties = restaurant.properties;
           const website = extractWebsite(properties);
           const phone = extractPhone(properties);
