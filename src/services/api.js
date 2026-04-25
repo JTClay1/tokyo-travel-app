@@ -1,22 +1,7 @@
 const TOKYO_LAT = 35.6762;
 const TOKYO_LON = 139.6503;
+const DEFAULT_RESTAURANT_RADIUS = 4000;
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
-
-// These preset radius filters make neighborhood search much cleaner than
-// trying to geocode arbitrary user text on the fly.
-const TOKYO_AREA_FILTERS = {
-  all: `circle:${TOKYO_LON},${TOKYO_LAT},18000`,
-  shibuya: "circle:139.7005,35.6595,1800",
-  shinjuku: "circle:139.7034,35.6938,1800",
-  asakusa: "circle:139.7967,35.7148,1500",
-  ginza: "circle:139.7650,35.6717,1500",
-  ueno: "circle:139.7772,35.7138,1500",
-  akihabara: "circle:139.7730,35.6984,1500",
-  harajuku: "circle:139.7027,35.6702,1400",
-  roppongi: "circle:139.7314,35.6628,1500",
-  ikebukuro: "circle:139.7109,35.7295,1700",
-  tokyo_station: "circle:139.7671,35.6812,1600",
-};
 
 function ensureGeoapifyKey() {
   if (!GEOAPIFY_API_KEY) {
@@ -27,8 +12,6 @@ function ensureGeoapifyKey() {
 }
 
 export async function getTokyoWeather() {
-  // Build the full weather request by hand so it stays obvious exactly what
-  // fields I am asking the API for.
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${TOKYO_LAT}` +
@@ -48,15 +31,62 @@ export async function getTokyoWeather() {
   return response.json();
 }
 
-export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
+export async function geocodeTokyoLocation(locationText) {
   ensureGeoapifyKey();
 
-  // URLSearchParams keeps this easier to read than manual string-building,
-  // especially once filters start stacking up.
+  const cleanedText = locationText.trim();
+
+  if (!cleanedText) {
+    throw new Error("Enter a Tokyo location, address, or zip code.");
+  }
+
+  const params = new URLSearchParams({
+    text: cleanedText,
+    limit: "1",
+    format: "json",
+    lang: "en",
+    filter: "countrycode:jp",
+    apiKey: GEOAPIFY_API_KEY,
+  });
+
+  const response = await fetch(
+    `https://api.geoapify.com/v1/geocode/search?${params.toString()}`
+  );
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || "Failed to look up that location.");
+  }
+
+  if (!data.results?.length) {
+    throw new Error(
+      "No matching Tokyo-area location was found. Try a Tokyo neighborhood, station, address, or zip code."
+    );
+  }
+
+  const match = data.results[0];
+
+  return {
+    latitude: match.lat,
+    longitude: match.lon,
+    label: match.formatted || cleanedText,
+    radius: DEFAULT_RESTAURANT_RADIUS,
+  };
+}
+
+export async function searchTokyoRestaurants(searchTerm = "", options = {}) {
+  ensureGeoapifyKey();
+
+  const {
+    latitude = TOKYO_LAT,
+    longitude = TOKYO_LON,
+    radius = DEFAULT_RESTAURANT_RADIUS,
+  } = options;
+
   const params = new URLSearchParams({
     categories: "catering.restaurant,catering.fast_food,catering.cafe",
-    filter: TOKYO_AREA_FILTERS[areaKey] || TOKYO_AREA_FILTERS.all,
-    bias: `proximity:${TOKYO_LON},${TOKYO_LAT}`,
+    filter: `circle:${longitude},${latitude},${radius}`,
+    bias: `proximity:${longitude},${latitude}`,
     limit: "20",
     lang: "en",
     apiKey: GEOAPIFY_API_KEY,
@@ -64,7 +94,6 @@ export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
 
   const cleanedQuery = searchTerm.trim();
 
-  // Only attach the name filter if the user actually typed something.
   if (cleanedQuery) {
     params.set("name", cleanedQuery);
   }
@@ -78,7 +107,5 @@ export async function searchTokyoRestaurants(searchTerm = "", areaKey = "all") {
     throw new Error(data?.message || "Failed to fetch restaurant data.");
   }
 
-  // Geoapify returns place features, so returning just the feature array keeps
-  // page-level code cleaner.
   return data.features || [];
 }
