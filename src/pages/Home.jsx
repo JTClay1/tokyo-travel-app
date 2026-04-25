@@ -4,6 +4,8 @@ import ImageCarousel from "../components/ImageCarousel";
 function Home() {
   return (
     <section className="home-page">
+      {/* Hero is the first impression, so it needs to explain the app quickly
+          without making the user dig around. */}
       <div className="hero-section">
         <p className="hero-eyebrow">Tokyo Travel App</p>
         <h2>Plan your Tokyo trip with confidence!</h2>
@@ -13,10 +15,11 @@ function Home() {
         </p>
       </div>
 
-      {/* Carousel adds some visual pull to the landing page and helps the app
-          feel more like an actual travel tool instead of just a utility menu. */}
+      {/* The carousel gives the landing page some actual visual pull and makes
+          the app feel more like a real travel product than a utility dashboard. */}
       <ImageCarousel />
 
+      {/* Feature cards act like quick navigation plus mini feature summaries. */}
       <div className="feature-grid">
         <article className="feature-card">
           <h3>Tokyo Weather</h3>
@@ -32,8 +35,8 @@ function Home() {
         <article className="feature-card">
           <h3>Restaurant Locator</h3>
           <p>
-            Search for places to eat by cuisine or neighborhood and quickly hand
-            the result off to Google Maps.
+            Search for places to eat by cuisine, location, and distance, then
+            quickly hand the result off to Google Maps.
           </p>
           <Link to="/restaurants" className="feature-link">
             Go to Restaurants

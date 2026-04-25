@@ -4,6 +4,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import { getTokyoWeather } from "../services/api";
 import SeasonalClimateTable from "../components/SeasonalClimateTable";
 
+// Translate raw Open-Meteo weather codes into language a normal user can read.
 function getWeatherLabel(code) {
   const weatherCodeMap = {
     0: "Clear sky",
@@ -39,6 +40,7 @@ function getWeatherLabel(code) {
   return weatherCodeMap[code] || "Unknown conditions";
 }
 
+// Same deal as the label map, but this time for quick visual readability.
 function getWeatherIcon(code) {
   if ([0, 1].includes(code)) return "☀️";
   if (code === 2) return "⛅";
@@ -56,6 +58,7 @@ function convertToFahrenheit(celsius) {
   return ((celsius * 9) / 5 + 32).toFixed(1);
 }
 
+// Keep all temperature display logic in one place so the JSX stays cleaner.
 function formatTemperature(celsius, unit) {
   if (unit === "f") {
     return `${convertToFahrenheit(celsius)}°F`;
@@ -65,6 +68,7 @@ function formatTemperature(celsius, unit) {
 }
 
 function formatHumidity(value) {
+  // Fallback protects the UI from rendering undefined or null.
   return value == null ? "N/A" : `${value}%`;
 }
 
@@ -89,6 +93,8 @@ function formatHourlyTime(timestamp) {
   });
 }
 
+// Daily cards show average humidity, but Open-Meteo gives humidity hourly, so
+// this groups it by day and averages it into one cleaner value.
 function buildDailyHumidityMap(hourly) {
   if (!hourly?.time || !hourly?.relative_humidity_2m) {
     return {};
@@ -119,6 +125,8 @@ function buildDailyHumidityMap(hourly) {
   return averagedHumidity;
 }
 
+// Build a day-keyed map of hourly entries so each daily forecast card can
+// expand into its own hourly breakdown without extra API calls.
 function buildHourlyForecastMap(hourly) {
   if (
     !hourly?.time ||
@@ -157,6 +165,7 @@ function Weather() {
   const [expandedDay, setExpandedDay] = useState(null);
 
   useEffect(() => {
+    // Weather loads once when the page mounts.
     async function loadWeather() {
       try {
         const data = await getTokyoWeather();
@@ -173,7 +182,9 @@ function Weather() {
 
   if (loading) return <Loading message="Fetching Tokyo weather..." />;
   if (error) return <ErrorMessage message={error} />;
-  if (!weatherData) return <ErrorMessage message="Weather data is unavailable." />;
+  if (!weatherData) {
+    return <ErrorMessage message="Weather data is unavailable." />;
+  }
 
   const current = weatherData.current;
   const daily = weatherData.daily;
@@ -181,6 +192,7 @@ function Weather() {
   const hourlyForecastMap = buildHourlyForecastMap(weatherData.hourly);
 
   function handleToggleDay(day) {
+    // Only one day expands at a time. Clicking the open one collapses it.
     setExpandedDay((currentExpandedDay) =>
       currentExpandedDay === day ? null : day
     );
@@ -190,6 +202,8 @@ function Weather() {
     <section>
       <h2>Tokyo Weather</h2>
 
+      {/* Unit toggle only changes display. The source data stays in Celsius,
+          which keeps the API work simple and predictable. */}
       <div className="unit-toggle">
         <button
           className={unit === "c" ? "unit-button active" : "unit-button"}

@@ -6,6 +6,8 @@ import {
   searchTokyoRestaurants,
 } from "../services/api";
 
+// This is the default anchor point for the restaurant page so the first render
+// already has a real Tokyo-based search center.
 const DEFAULT_SEARCH_CENTER = {
   latitude: 35.6812,
   longitude: 139.7671,
@@ -13,6 +15,8 @@ const DEFAULT_SEARCH_CENTER = {
   radius: 4000,
 };
 
+// Japanese keyword chips help users get stronger local-style search results
+// without needing to know how to type those terms themselves.
 const suggestedKeywords = [
   { english: "Sushi", japanese: "寿司" },
   { english: "Ramen", japanese: "ラーメン" },
@@ -31,6 +35,8 @@ function formatCategory(category) {
     .join(" • ");
 }
 
+// Geoapify / OSM metadata can be inconsistent, so these helpers pull from a
+// few likely fields before giving up.
 function extractWebsite(properties) {
   return (
     properties.website ||
@@ -59,6 +65,8 @@ function extractOpeningHours(properties) {
   );
 }
 
+// Use a Google Maps handoff because it is familiar and fast for the user once
+// they actually want to navigate somewhere.
 function getMapLink(properties) {
   const searchText = [properties.name, properties.formatted]
     .filter(Boolean)
@@ -75,6 +83,8 @@ function toRadians(value) {
   return (value * Math.PI) / 180;
 }
 
+// Haversine formula for straight-line distance between the searched Tokyo area
+// and each restaurant result.
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const earthRadiusKm = 6371;
   const dLat = toRadians(lat2 - lat1);
@@ -116,6 +126,8 @@ function Restaurants() {
   const [error, setError] = useState("");
 
   const runSearch = useCallback(async (searchTerm, searchCenter) => {
+    // Shared search runner keeps initial load and normal searches using the
+    // same logic path instead of duplicating request code.
     setSearchStarted(true);
     setLoading(true);
     setError("");
@@ -133,6 +145,7 @@ function Restaurants() {
   }, []);
 
   useEffect(() => {
+    // Default page load starts with something useful instead of a blank layout.
     runSearch("sushi", DEFAULT_SEARCH_CENTER);
   }, [runSearch]);
 
@@ -144,6 +157,8 @@ function Restaurants() {
     setError("");
 
     try {
+      // If the user typed a location, geocode it first. Otherwise fall back to
+      // the default Tokyo Station search center.
       const resolvedLocation = locationInput.trim()
         ? await geocodeTokyoLocation(locationInput)
         : DEFAULT_SEARCH_CENTER;
@@ -161,10 +176,14 @@ function Restaurants() {
   }
 
   function handleSuggestedKeywordClick(keyword) {
+    // Chip click only changes the keyword field. The actual search still waits
+    // for submit so the user can pair it with any location they want.
     setQuery(keyword);
   }
 
   const restaurantsWithDistance = useMemo(() => {
+    // Attach a computed distance to each result so the UI can display it and
+    // the sorting control can use it.
     return restaurants.map((restaurant) => {
       const properties = restaurant.properties;
       const lat = Number(properties?.lat);
@@ -188,6 +207,7 @@ function Restaurants() {
   }, [restaurants, activeSearchCenter]);
 
   const sortedRestaurants = useMemo(() => {
+    // Copy the array first so sorting does not mutate the original results.
     const sorted = [...restaurantsWithDistance];
 
     if (sortOption === "nearest") {
@@ -208,6 +228,7 @@ function Restaurants() {
       });
     }
 
+    // "default" just preserves the order returned by the API.
     return sorted;
   }, [restaurantsWithDistance, sortOption]);
 
