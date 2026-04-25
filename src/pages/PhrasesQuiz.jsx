@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-// Keeping the raw question bank separate from the live quiz state makes it easy
-// to reshuffle without mutating the original source data.
+// Raw quiz content stays separate from live quiz state so the app can shuffle
+// freely without mutating the source question bank.
 const questionBank = [
   {
     prompt: "Hello",
@@ -105,7 +105,7 @@ const questionBank = [
   },
 ];
 
-// Simple Fisher-Yates shuffle so each run feels less repetitive.
+// Fisher-Yates shuffle keeps quiz order from feeling identical every run.
 function shuffleArray(items) {
   const shuffled = [...items];
 
@@ -120,7 +120,8 @@ function shuffleArray(items) {
   return shuffled;
 }
 
-// Build a fresh quiz version by shuffling both question order and answer order.
+// Build one fresh quiz instance by shuffling both the question order and each
+// question’s answer choices.
 function buildQuizQuestions() {
   return shuffleArray(questionBank).map((question) => ({
     ...question,
@@ -139,8 +140,8 @@ function PhrasesQuiz() {
   const currentQuestion = quizQuestions[currentQuestionIndex];
 
   function handleAnswerClick(answer) {
-    // Once the user answers, lock the question so score cannot be cheesed by
-    // clicking a second option.
+    // Lock the question after one click so the user cannot spam buttons and
+    // game the score.
     if (hasAnswered) return;
 
     setSelectedAnswer(answer);
@@ -163,8 +164,9 @@ function PhrasesQuiz() {
     }
   }
 
-  // Restart builds a fresh shuffled quiz so reruns do not feel identical.
   function handleRestartQuiz() {
+    // Restart gives the user a fresh shuffled run instead of recycling the
+    // exact same question order.
     setQuizQuestions(buildQuizQuestions());
     setCurrentQuestionIndex(0);
     setSelectedAnswer("");
@@ -174,6 +176,7 @@ function PhrasesQuiz() {
   }
 
   function getButtonClassName(option) {
+    // Button styling reflects quiz state after the user answers.
     if (!hasAnswered) return "quiz-option";
 
     if (option === currentQuestion.correctAnswer) {

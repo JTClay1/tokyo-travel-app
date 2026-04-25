@@ -4,6 +4,8 @@ const DEFAULT_RESTAURANT_RADIUS = 4000;
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
 function ensureGeoapifyKey() {
+  // Restaurant/geocoding features depend on Geoapify, so fail fast with a
+  // useful message if the env var is missing.
   if (!GEOAPIFY_API_KEY) {
     throw new Error(
       "Missing Geoapify API key. Add VITE_GEOAPIFY_API_KEY to .env.local."
@@ -12,6 +14,8 @@ function ensureGeoapifyKey() {
 }
 
 export async function getTokyoWeather() {
+  // Build the weather request manually so it stays obvious exactly which fields
+  // the weather page depends on.
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${TOKYO_LAT}` +
@@ -31,7 +35,6 @@ export async function getTokyoWeather() {
   return response.json();
 }
 
-
 export async function geocodeTokyoLocation(locationText) {
   ensureGeoapifyKey();
 
@@ -41,6 +44,8 @@ export async function geocodeTokyoLocation(locationText) {
     throw new Error("Enter a Tokyo location, address, or zip code.");
   }
 
+  // Geocode user-entered Tokyo areas into lat/lon before the restaurant search
+  // runs, so the page can search around a specific neighborhood or address.
   const params = new URLSearchParams({
     text: cleanedText,
     limit: "1",
@@ -84,6 +89,8 @@ export async function searchTokyoRestaurants(searchTerm = "", options = {}) {
     radius = DEFAULT_RESTAURANT_RADIUS,
   } = options;
 
+  // Search center comes from either the default Tokyo area or the user’s
+  // geocoded location input.
   const params = new URLSearchParams({
     categories: "catering.restaurant,catering.fast_food,catering.cafe",
     filter: `circle:${longitude},${latitude},${radius}`,
@@ -95,6 +102,7 @@ export async function searchTokyoRestaurants(searchTerm = "", options = {}) {
 
   const cleanedQuery = searchTerm.trim();
 
+  // Only apply the name keyword if the user actually typed one.
   if (cleanedQuery) {
     params.set("name", cleanedQuery);
   }
@@ -108,5 +116,7 @@ export async function searchTokyoRestaurants(searchTerm = "", options = {}) {
     throw new Error(data?.message || "Failed to fetch restaurant data.");
   }
 
+  // Return just the feature array so page-level code does not need to care
+  // about the rest of the raw Geoapify response shape.
   return data.features || [];
 }

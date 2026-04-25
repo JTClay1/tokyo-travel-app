@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-// Static slide data lives up top so it is easy to update later without digging
-// through the component logic.
+// Keep slide data separate from the component logic so editing attractions later
+// is easy and does not turn into digging through JSX.
 const attractionSlides = [
   {
     title: "Tokyo Disneyland",
@@ -69,8 +69,8 @@ function ImageCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    // Auto-advance every 7 seconds. Long enough to actually read the caption,
-    // short enough that the carousel still feels alive.
+    // Auto-advance keeps the carousel feeling alive, but the interval is long
+    // enough that users can actually read the text before it changes.
     const timer = setInterval(() => {
       setCurrentSlide((previousSlide) =>
         previousSlide === attractionSlides.length - 1 ? 0 : previousSlide + 1
@@ -80,22 +80,22 @@ function ImageCarousel() {
     return () => clearInterval(timer);
   }, []);
 
-  // Wrap around to the end when backing up from slide 0.
   function handlePrevious() {
+    // Wrap backward from slide 0 to the end instead of getting stuck.
     setCurrentSlide((previousSlide) =>
       previousSlide === 0 ? attractionSlides.length - 1 : previousSlide - 1
     );
   }
 
-  // Wrap around to the start when moving past the last slide.
   function handleNext() {
+    // Wrap forward from the last slide back to the start.
     setCurrentSlide((previousSlide) =>
       previousSlide === attractionSlides.length - 1 ? 0 : previousSlide + 1
     );
   }
 
-  // Dot navigation gives users a direct jump to the attraction they want.
   function handleDotClick(index) {
+    // Dot buttons let the user jump directly to the attraction they want.
     setCurrentSlide(index);
   }
 
@@ -118,8 +118,8 @@ function ImageCarousel() {
             className="carousel-image"
           />
 
-          {/* Overlay keeps the image front and center while still giving enough
-              context for the user to know what they are looking at. */}
+          {/* Overlay keeps the attraction info readable without taking focus
+              away from the image itself. */}
           <div className="carousel-overlay">
             <h4 className="carousel-title">{slide.title}</h4>
             <p className="carousel-description">{slide.description}</p>
